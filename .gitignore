@@ -305,6 +305,8 @@ _Pvt_Extensions
 # Paket dependency manager
 .paket/paket.exe
 paket-files/
+vcpkg_installed
+vcpkg_installed/*
 
 # FAKE - F# Make
 .fake/
