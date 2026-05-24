@@ -9,8 +9,39 @@
 #include <shlwapi.h>
 #include <filesystem>
 #include <rapidfuzz/distance/Levenshtein.hpp>
+#include <unordered_set>
+#include <string>
 
 #pragma comment(lib, "Shlwapi.lib")
+
+const std::unordered_set<std::string> SKIP_DIRS = {
+    "node_modules",
+    ".git",
+    ".svn",
+    "build",
+    "cmake-build-debug",
+    "cmake-build-release",
+    "__pycache__",
+    ".vs",
+    ".idea",
+    "vendor",
+    "bower_components",
+    "target",          // Rust
+    "obj",             // .NET
+    "bin",             // often build output
+    ".cache",
+    "dist",
+    "out"
+};
+
+static void lower(std::string& s) {
+    for (auto& c : s) c = (char)::tolower((unsigned char)c);
+}
+
+std::string filename_from_path(const std::string& fullpath) {
+    auto pos = fullpath.rfind('\\');
+    return (pos != std::string::npos) ? fullpath.substr(pos + 1) : fullpath;
+}
 
 std::vector<std::string> get_fixed_drives() {
     std::vector<std::string> drives;
@@ -58,33 +89,62 @@ std::vector<std::string> get_user_search_dirs() {
     return dirs;
 }
 
-std::optional<std::string> find_file(const std::string& path,
+std::vector<std::string> find_file(const std::string& path,
     const std::string& target,
     const std::atomic<bool>* stop = nullptr)
 {
-    std::string path_pattern = path + "\\" + target;             
-    WIN32_FIND_DATAA find_info;
+    std::string pattern = path + "\\*";
+    WIN32_FIND_DATAA ffd;
+    HANDLE hFind = FindFirstFileA(pattern.c_str(), &ffd);
+    
+    // Prepare lowercase query once (only need to do this per directory)
+    std::string query = target;
+    lower(query);
 
-    HANDLE hfind = FindFirstFileA(path_pattern.c_str(), &find_info);
-    if (hfind == INVALID_HANDLE_VALUE) {
-        return std::nullopt;
-    }
+    std::vector<std::string> result;
+    if (hFind == INVALID_HANDLE_VALUE) return result;
 
-    std::optional<std::string> result;
     do {
         if (stop && *stop) break;
 
-        if (_stricmp(find_info.cFileName, ".") == 0 || _stricmp(find_info.cFileName, "..") == 0) continue;
+        // Skip . and ..
+        if (strcmp(ffd.cFileName, ".") == 0 || strcmp(ffd.cFileName, "..") == 0) continue;
 
-        if (find_info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) continue;
+        // Only interested in files
+        if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            continue;
 
-        if (PathMatchSpecA(find_info.cFileName, target.c_str())) {
-            result = path + "\\" + find_info.cFileName;
-            break;
+        // ---------- fuzzy‑match the filename ----------
+        std::string fname(ffd.cFileName);
+        std::string fname_lower = fname;
+        lower(fname_lower);
+
+        bool matched = false;
+
+        // Fast path 1: exact case‑insensitive match
+        if (fname_lower == query) {
+            matched = true;
         }
-    } while (FindNextFileA(hfind, &find_info) != 0);
+        // Fast path 2: substring match
+        else if (fname_lower.find(query) != std::string::npos) {
+            matched = true;
+        }
+        // Slow path 3: Levenshtein distance (via rapidfuzz)
+        else {
+            size_t dist = rapidfuzz::levenshtein_distance(query, fname_lower);
+            int max_dist = std::min(2, (int)query.size() / 3);
+            if (max_dist < 1) max_dist = 1;
+            if (dist <= (size_t)max_dist)
+                matched = true;
+        }
 
-    FindClose(hfind);
+        if (matched) {
+            result.push_back(path + "\\" + ffd.cFileName);
+        }
+        
+    } while (FindNextFileA(hFind, &ffd) != 0);
+
+    FindClose(hFind);
     return result;
 }
 
@@ -108,6 +168,55 @@ std::vector<std::string> list_subdirs(const std::string& path,
 
     FindClose(hFind);
     return dirs;
+}
+
+std::vector<std::string> search_all_files_bfs(
+    const std::vector<std::string>& root,
+    const std::string& target)
+{
+    BS::thread_pool pool;
+    std::vector<std::string> all_matches;
+    std::mutex result_mutex;
+    std::vector<std::string> current_batch =  root;
+
+    size_t level = 0;
+
+    while (!current_batch.empty()) {
+            std::cout << "Level " << level
+            << " – scanning " << current_batch.size()
+            << " directories...\n";
+        std::vector<std::string> next_batch;
+        std::mutex next_mutex;
+
+        for (const auto& dir : current_batch) {
+            pool.detach_task([&, dir] { 
+                // 1) Fuzzy‑find all matches in this directory
+                auto local = find_file(dir, target);
+                if (!local.empty()) {
+                    std::lock_guard lock(result_mutex);
+                    all_matches.insert(all_matches.end(),
+                        local.begin(), local.end());
+                }
+
+                // 2) Collect subdirectories (no stop flag needed)
+                auto subdirs = list_subdirs(dir, nullptr);
+                for (const auto& sub : subdirs) {
+                    std::string fname = filename_from_path(sub);
+                    for (auto& c : fname) c = (char)::tolower((unsigned char)c);
+                    if (SKIP_DIRS.find(fname) == SKIP_DIRS.end()) {
+                        std::lock_guard lock(next_mutex);
+                        next_batch.push_back(sub);
+                    }
+                }
+                });
+        }
+
+        pool.wait();                          // ★ BS API – barrier for this level
+        current_batch = std::move(next_batch);
+        ++level;
+    }
+
+    return all_matches;
 }
 
 
@@ -156,60 +265,15 @@ int main(int argc, char* argv[])
     std::string result_path;
     std::mutex result_mutex;
 
-    BS::thread_pool pool;
 
-    
-    //if(root_path.empty()) current_batch = get_user_search_dirs();
-    //else 
-        //current_batch = {root_path};
-    
-    size_t level = 0;
+    auto matches = search_all_files_bfs(current_batch, target_file);
 
-    while (!found && !current_batch.empty()) {
-        std::cout << "Level " << level
-            << " – scanning " << current_batch.size()
-            << " directories...\n";
-
-        std::vector<std::string> next_batch;
-        std::mutex next_mutex;
-
-        for (const auto& dir : current_batch) {
-            pool.detach_task([&, dir] {
-                if (found) return;
-
-                // 1) Search for the file in this directory
-                auto maybe = find_file(dir, target_file, &found);
-                if (maybe) {
-                    std::lock_guard lock(result_mutex);
-                    if (!found) {
-                        found = true;
-                        result_path = *maybe;
-                    }
-                }
-
-                // 2) Collect subdirectories for next level
-                if (!found) {
-                    auto subdirs = list_subdirs(dir, &found);
-                    if (!found) {
-                        std::lock_guard lock(next_mutex);
-                        next_batch.insert(next_batch.end(),
-                            subdirs.begin(),
-                            subdirs.end());
-                    }
-                }
-                });
-        }
-
-        pool.wait();
-        current_batch = std::move(next_batch);
-        ++level;
-    }
-
-    if (found) {
-        std::cout << "\n✅ Found: " << result_path
-            << "\n   (at depth level " << level - 1 << ")\n";
+    if (matches.empty()) {   // ← vector::empty() – correct!
+        std::cout << "No files found.\n";
     }
     else {
-        std::cout << "\n❌ Not found.\n";
+        std::cout << "Found " << matches.size() << " file(s):\n";
+        for (const auto& path : matches)
+            std::cout << path << "\n";
     }
 }
