@@ -1,0 +1,8 @@
+{
+  "name": "fdz",
+  "version-string": "1.0",
+  "dependencies": [
+    "pthreads",
+    "bshoshany-thread-pool"
+  ]
+}

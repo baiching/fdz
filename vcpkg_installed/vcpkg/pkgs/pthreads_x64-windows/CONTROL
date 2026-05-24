@@ -1,0 +1,8 @@
+Package: pthreads
+Version: 3.0.0
+Port-Version: 14
+Depends: vcpkg-cmake-config
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 9f13daf8cc5cca1c560fb994b51585ec64f8e28a0e855cfac9ee0ee4898dd28e
+Description: Meta-package that provides PThreads4W on Windows, or assumes presence of system pthreads on POSIX systems.
