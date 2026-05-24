@@ -8,6 +8,7 @@
 #include <shlobj.h>
 #include <shlwapi.h>
 #include <filesystem>
+#include <rapidfuzz/distance/Levenshtein.hpp>
 
 #pragma comment(lib, "Shlwapi.lib")
 
