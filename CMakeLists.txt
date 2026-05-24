@@ -11,6 +11,5 @@ endif()
 
 project ("fdz")
 
-
 # Include sub-projects.
 add_subdirectory ("fdz")
