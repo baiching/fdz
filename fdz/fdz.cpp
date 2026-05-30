@@ -211,14 +211,13 @@ std::vector<std::string> search_all_files_bfs(
                 });
         }
 
-        pool.wait();                          // ★ BS API – barrier for this level
+        pool.wait();
         current_batch = std::move(next_batch);
         ++level;
     }
 
     return all_matches;
 }
-
 
 int main(int argc, char* argv[])
 {

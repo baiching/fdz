@@ -9,13 +9,21 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(rapidfuzz)
 
-if(MSVC)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
-endif()
+# Google benchmark
+FetchContent_Declare(googlebenchmark
+  GIT_REPOSITORY https://github.com/google/benchmark.git
+  GIT_TAG v1.9.5
+)
+set(BENCHMARK_ENABLE_TESTING OFF)
+FetchContent_MakeAvailable(googlebenchmark)
+
+
 # Add source to this project's executable.
-add_executable (fdz "fdz.cpp" "fdz.h" "BS_thread_pool.hpp")
+add_executable (fdz "fdz.cpp" "fdz.h" "BS_thread_pool.hpp" "dir_utils.h" "dir_utils.cpp")
 
 target_link_libraries(fdz PRIVATE rapidfuzz::rapidfuzz)
+target_link_libraries(fdz PRIVATE benchmark::benchmark benchmark::benchmark_main)
+
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET fdz PROPERTY CXX_STANDARD 20)
 endif()
