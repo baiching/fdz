@@ -17,9 +17,13 @@ FetchContent_Declare(googlebenchmark
 set(BENCHMARK_ENABLE_TESTING OFF)
 FetchContent_MakeAvailable(googlebenchmark)
 
+add_library(dir_utils STATIC 
+			"dir_utils.h" 
+			"dir_utils.cpp"
+)
 
 # Add source to this project's executable.
-add_executable (fdz "fdz.cpp" "fdz.h" "BS_thread_pool.hpp" "dir_utils.h" "dir_utils.cpp")
+add_executable (fdz "fdz.cpp" "fdz.h" "BS_thread_pool.hpp")
 
 target_link_libraries(fdz PRIVATE rapidfuzz::rapidfuzz)
 target_link_libraries(fdz PRIVATE benchmark::benchmark benchmark::benchmark_main)
@@ -29,3 +33,18 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
 endif()
 
 # TODO: Add tests and install targets if needed.
+Include(FetchContent)
+
+FetchContent_Declare(
+  Catch2
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG        v3.15.0 # or a later release
+)
+
+FetchContent_MakeAvailable(Catch2)
+
+add_executable(tests "tests/test_dir_utills.cpp")
+target_link_libraries(tests PRIVATE dir_utils Catch2::Catch2WithMain)
+
+include(Catch)
+catch_discover_tests(tests)
