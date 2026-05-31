@@ -2,7 +2,8 @@
 #include <algorithm>
 #include <cctype>
 #include <iostream>
-#include <array>
+#include <string>
+#include <vector>
 #include <Windows.h>
 
 Dir_Utils::Dir_Utils() : SKIP_DIR_LIST({
@@ -32,21 +33,10 @@ void Dir_Utils::lower(std::string& s)  {
 		[](unsigned char c) { return std::tolower(c); });
 
 }
-template<char... Seprators>
 std::string Dir_Utils::filename_from_path(const std::string& fullpath) {
-	constexpr std::array<char, 256> is_separator = []() {
-		std::array<char, 256> arr{};
-		((arr[static_cast<unsigned char>(Seprators)] = 1), ...);
-		return arr;
-		}();
+	const std::string separators = "/\\";  // forward slash and backslash
 
-	size_t last_slash = std::string::npos;
-	for (size_t i = fullpath.size(); i > 0; --i) {
-		if (is_separator[static_cast<unsigned char>(fullpath[i - 1])]) {
-			last_slash = i - 1;
-			break;
-		}
-	}
+	size_t last_slash = fullpath.find_last_of(separators);
 
 	if (last_slash == std::string::npos) return fullpath;
 
@@ -56,7 +46,7 @@ std::string Dir_Utils::filename_from_path(const std::string& fullpath) {
 std::vector<std::string> Dir_Utils::get_fixed_drives() {
 	std::vector<std::string> drives;
 	std::array<char, 512> buff{};
-	DWORD len = GetLogicalDriveStringsA(buff.size(), buff.data());
+	DWORD len = GetLogicalDriveStringsA(static_cast<DWORD>(buff.size()), buff.data());
 
 	if (len == 0 || len > buff.size()) return drives;
 
@@ -84,7 +74,32 @@ std::string Dir_Utils::known_folder_path(const KNOWNFOLDERID& id) {
 	}
 
 	std::string rpath(len - 1, '\0');
-	WideCharToMultiByte(CP_UTF8, 0, path, -1, rpath.data(), len, nullptr, nullptr);
+	WideCharToMultiByte(CP_UTF8, 0, path, -1, &rpath[0], len, nullptr, nullptr);
 
 	return rpath;
+}
+
+std::vector<std::string> Dir_Utils::get_user_search_dirs() {
+	std::vector<std::string> dirs;
+	const KNOWNFOLDERID search_folders[] = {
+		FOLDERID_Desktop,
+		FOLDERID_Downloads,
+		FOLDERID_Documents,
+		FOLDERID_Pictures,
+		FOLDERID_Music,
+		FOLDERID_Videos
+	};
+
+	for (auto id : search_folders) {
+		std::string path = known_folder_path(id);
+		if (!path.empty() && GetFileAttributesA(path.c_str()) != INVALID_FILE_ATTRIBUTES) {
+			dirs.push_back(path);
+		}
+	}
+
+	auto rest = this->get_fixed_drives();
+	rest.erase(std::remove(rest.begin(), rest.end(), "C:\\"), rest.end());
+
+	dirs.insert(dirs.end(), rest.begin(), rest.end());
+	return dirs;
 }
