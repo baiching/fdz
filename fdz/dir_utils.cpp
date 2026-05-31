@@ -3,6 +3,7 @@
 #include <cctype>
 #include <iostream>
 #include <array>
+#include <Windows.h>
 
 Dir_Utils::Dir_Utils() : SKIP_DIR_LIST({
 	"node_modules",
@@ -68,10 +69,22 @@ std::vector<std::string> Dir_Utils::get_fixed_drives() {
 	return drives;
 }
 
-//int main() {
-//	Dir_Utils utils;
-//	std::string path = "C:\\Users\\Example\\file.txt";
-//	std::string filename = utils.filename_from_path<'\\', '/'>(path);
-//	std::cout << "Filename: " << filename << std::endl; // Output: file.txt
-//	return 0;
-//}
+std::string Dir_Utils::known_folder_path(const KNOWNFOLDERID& id) {
+	PWSTR path = nullptr;
+	if (FAILED(SHGetKnownFolderPath(id, KF_FLAG_DEFAULT, nullptr, &path))) {
+		return "";
+	}
+	
+	auto guard = std::unique_ptr<wchar_t, decltype(&CoTaskMemFree)>(path, CoTaskMemFree);
+
+	int len = WideCharToMultiByte(CP_UTF8, 0, path, -1, nullptr, 0, nullptr, nullptr);
+
+	if (len <= 0) {
+		return "";
+	}
+
+	std::string rpath(len - 1, '\0');
+	WideCharToMultiByte(CP_UTF8, 0, path, -1, rpath.data(), len, nullptr, nullptr);
+
+	return rpath;
+}

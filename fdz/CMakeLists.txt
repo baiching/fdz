@@ -28,6 +28,4 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET fdz PROPERTY CXX_STANDARD 20)
 endif()
 
-# Find and link pthreads (via vcpkg on Windows, system pthread on Linux/macOS)
-
 # TODO: Add tests and install targets if needed.
