@@ -20,10 +20,10 @@ FetchContent_MakeAvailable(googlebenchmark)
 add_library(dir_utils STATIC 
 			"dir_utils.h" 
 			"dir_utils.cpp"
-)
+ "search_utils.h" "search_utils.cpp")
 
 # Add source to this project's executable.
-add_executable (fdz "fdz.cpp" "fdz.h" "BS_thread_pool.hpp")
+add_executable (fdz "fdz.cpp" "fdz.h" "BS_thread_pool.hpp" "search_utils.h")
 
 target_link_libraries(fdz PRIVATE rapidfuzz::rapidfuzz)
 target_link_libraries(fdz PRIVATE benchmark::benchmark benchmark::benchmark_main)
@@ -43,7 +43,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
-add_executable(tests "tests/test_dir_utills.cpp")
+add_executable(tests "tests/test_dir_utills.cpp" "tests/test_search_utils.cpp")
 target_link_libraries(tests PRIVATE dir_utils Catch2::Catch2WithMain)
 
 include(Catch)
