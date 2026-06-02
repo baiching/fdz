@@ -12,7 +12,7 @@ public:
 	// to convert a string to lowercase 
 	// (for case-insensitive comparison) 
 	// or to facilaitate fuzzy matching via rapidfuzz
-	void lower(std::string& s);
+	void lower(std::wstring& s);
 
 	// to extract filename from a full path
 	// (e.g., "C:\path\to\file.txt" -> "file.txt")

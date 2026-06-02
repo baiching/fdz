@@ -27,7 +27,7 @@ Dir_Utils::Dir_Utils() : SKIP_DIR_LIST({
 	}) {
 }
 
-void Dir_Utils::lower(std::string& s)  {
+void Dir_Utils::lower(std::wstring& s)  {
 
 	std::transform(s.begin(), s.end(), s.begin(),
 		[](unsigned char c) { return std::tolower(c); });

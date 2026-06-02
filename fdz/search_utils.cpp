@@ -30,14 +30,48 @@ static std::string wchar_to_utf8(const wchar_t* wstr) {
 	return str;
 }
 
+static std::wstring utf8_to_wchar(const char* utf8_str) {
+    int len = MultiByteToWideChar(
+        CP_UTF8,
+        0,
+        utf8_str,
+        -1,
+        nullptr,
+        0);
+
+    if (len <= 0) return {};
+
+    std::wstring wstr(len - 1, L'\0');
+
+    MultiByteToWideChar(
+        CP_UTF8,
+        0,
+        utf8_str,
+        -1,
+        &wstr[0],
+        len);
+
+    return wstr;
+}
+
+static int compute_max_dist(size_t len) {
+    if (len == 0) return 0;
+    int limit = static_cast<int>(len / 3);
+    if (limit < 1) limit = 1;
+    if (limit > 2) limit = 2;
+    return limit;
+}
+
 std::vector<std::string> Search_Utils::find_file(const std::string& path,
 	const std::string& target,
 	const std::atomic<bool>* stop)
 {
 	Dir_Utils dir_utils;
     std::vector<std::string> result;
-    std::string query = target;
-    std::wstring pattern = std::wstring(path.begin(), path.end()) + L"\\*";
+	
+    std::wstring query = utf8_to_wchar(target.c_str());
+    std::wstring pattern = utf8_to_wchar(path.c_str()) + L"\\*";
+
     WIN32_FIND_DATAW ffd;
     dir_utils.lower(query);
 
@@ -61,8 +95,8 @@ std::vector<std::string> Search_Utils::find_file(const std::string& path,
             continue;
         }
 
-        std::string fname(wchar_to_utf8(ffd.cFileName));
-        std::string fname_lower = fname;
+        std::wstring fname(ffd.cFileName);
+        std::wstring fname_lower = fname;
         dir_utils.lower(fname_lower);
 
         bool matched = false;
@@ -71,28 +105,15 @@ std::vector<std::string> Search_Utils::find_file(const std::string& path,
             matched = true;
         }
 
-        else if (fname_lower.find(query) != std::string::npos) {
+        else if (fname_lower.find(query) != std::wstring::npos) {
             matched = true;
         }
 
         else {
             size_t dist = rapidfuzz::levenshtein_distance(query, fname_lower);
-            int max_dist = 0;
-            if (query.empty()) {
-                max_dist = 0;
-            }
-            else {
-				size_t dynamic_limit = query.size() / 3;
 
-				size_t edit_distance_limit = (dynamic_limit < 2) ? dynamic_limit : 2;
+            int max_dist = compute_max_dist(query.size());
 
-				if (edit_distance_limit == 0) edit_distance_limit = 1;
-                else
-                {
-					max_dist = static_cast<int>(edit_distance_limit);
-                }
-            }
-            if (max_dist < 1) max_dist = 1;
             if (dist <= (size_t)max_dist)
                 matched = true;
         }
