@@ -23,9 +23,10 @@ add_library(dir_utils STATIC
  "search_utils.h" "search_utils.cpp")
 
 # Add source to this project's executable.
-add_executable (fdz "fdz.cpp" "fdz.h" "BS_thread_pool.hpp" "search_utils.h")
+add_executable (fdz "fdz.cpp" "fdz.h" "BS_thread_pool.hpp")
 
 target_link_libraries(fdz PRIVATE rapidfuzz::rapidfuzz)
+target_link_libraries(dir_utils PUBLIC rapidfuzz::rapidfuzz)
 target_link_libraries(fdz PRIVATE benchmark::benchmark benchmark::benchmark_main)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

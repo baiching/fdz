@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <atomic>
+#include <rapidfuzz/distance/Levenshtein.hpp>
 
 class Search_Utils {
 public:
