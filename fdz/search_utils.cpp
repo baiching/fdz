@@ -159,3 +159,84 @@ std::vector<std::string> Search_Utils::list_subdirs(const std::string& path,
     FindClose(hfind);
     return dirs;
 }
+
+static void process_batch(
+    std::vector<std::string>& batch, 
+    std::string &target,
+    std::vector<std::string> &out_results,
+    std::mutex &result_mutex
+) {
+    auto srh = std::make_unique<Search_Utils>();
+    for (const auto &dir : batch) {
+        auto local = srh->find_file(dir, target, nullptr);
+
+        if (!local.empty()) {
+            std::lock_guard lock(result_mutex);
+            out_results.insert(
+                out_results.end(),
+                std::move_iterator(local.begin()),
+                std::move_iterator(local.end())
+            );
+        }
+    }
+}
+
+static std::vector<std::string> gather_bulk(std::vector<std::string> &batch) {
+    Search_Utils srh;
+    Dir_Utils dir_utils;
+    std::vector<std::string> dir_bulk;
+
+    std::unordered_set<std::string> skip_list = dir_utils.get_skip_list();
+    for (const auto &dir : batch) {
+        auto subdirs = srh.list_subdirs(dir, NULL);
+
+        for (const auto& sub : subdirs) {
+            std::string fname = dir_utils.filename_from_path(sub);
+            for (char& c : fname)
+                c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+            if (skip_list.find(fname) == skip_list.end()) {
+                dir_bulk.push_back(sub);
+            }
+        }
+    }
+
+    return dir_bulk;
+}
+
+std::vector<std::string> split_and_submit(
+    std::vector<std::string> &bulk,
+    std::string &target,
+    std::vector<std::string> &out_results,
+    std::size_t batch_size,
+    BS::thread_pool<> &pool
+) {
+    auto result_mutex = std::make_shared<std::mutex>();
+
+    if (bulk.empty()) return out_results;
+
+    for (int i = 0; i < bulk.size(); i += batch_size) {
+        std::size_t end = std::min<std::size_t>(i + batch_size, bulk.size());
+
+        std::vector<std::string> batch(bulk.begin() + i, bulk.begin() + end);
+
+        pool.detach_task([
+            batch = std::move(batch),
+            &target,
+            &out_results,
+            result_mutex
+        ] () mutable {
+            process_batch(batch, target, out_results, *result_mutex);
+            });
+    }
+
+    pool.wait();
+
+    return out_results;
+}
+
+std::vector<std::string> Search_Utils::concurrent_search(
+    const std::vector<std::string>& roots,
+    const std::string& target
+) {
+    
+}
