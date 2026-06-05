@@ -2,12 +2,6 @@
 # project specific logic here.
 #
 include(FetchContent)
-FetchContent_Declare(
-  rapidfuzz
-  GIT_REPOSITORY https://github.com/rapidfuzz/rapidfuzz-cpp.git
-  GIT_TAG        v3.3.3 
-)
-FetchContent_MakeAvailable(rapidfuzz)
 
 # Google benchmark
 FetchContent_Declare(googlebenchmark
@@ -17,17 +11,39 @@ FetchContent_Declare(googlebenchmark
 set(BENCHMARK_ENABLE_TESTING OFF)
 FetchContent_MakeAvailable(googlebenchmark)
 
+# adding helper files
+add_library(dir_utils STATIC 
+			"dir_utils.h" 
+			"dir_utils.cpp"
+"BS_thread_pool.hpp")
+#junk, not needed
+target_include_directories(dir_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
 
 # Add source to this project's executable.
-add_executable (fdz "fdz.cpp" "fdz.h" "BS_thread_pool.hpp" "dir_utils.h" "dir_utils.cpp")
+add_executable (fdz "fdz.cpp" "fdz.h" "search_utils.h" "search_utils.cpp" "BS_thread_pool.hpp")
 
-target_link_libraries(fdz PRIVATE rapidfuzz::rapidfuzz)
+target_link_libraries(fdz PRIVATE dir_utils)
 target_link_libraries(fdz PRIVATE benchmark::benchmark benchmark::benchmark_main)
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET fdz PROPERTY CXX_STANDARD 20)
-endif()
 
-# Find and link pthreads (via vcpkg on Windows, system pthread on Linux/macOS)
+# TODO: Tests and install targets.
+include(FetchContent)
 
-# TODO: Add tests and install targets if needed.
+FetchContent_Declare(
+  Catch2
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG        v3.15.0 # or a later release
+)
+
+FetchContent_MakeAvailable(Catch2)
+
+add_executable(tests 
+	"tests/test_dir_utills.cpp" 
+	"tests/test_search_utils.cpp"
+	"search_utils.h"
+    "search_utils.cpp")
+target_link_libraries(tests PRIVATE dir_utils Catch2::Catch2WithMain)
+
+include(Catch)
+catch_discover_tests(tests)
