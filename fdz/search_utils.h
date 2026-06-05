@@ -1,4 +1,5 @@
 #pragma once
+#include "./BS_thread_pool.hpp"
 #include <string>
 #include <vector>
 #include <atomic>
@@ -13,8 +14,8 @@ public:
     std::vector<std::string> list_subdirs(const std::string& path,
         const std::atomic<bool>* stop = nullptr);
 
-    std::vector<std::string> search_all_files_bfs(
-        const std::vector<std::string>& root,
-        const std::string& target);
+    std::vector<std::string> concurrent_search(
+        const std::vector<std::string> &roots,
+        std::string &target);
 private:
 };

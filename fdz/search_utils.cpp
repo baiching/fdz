@@ -109,14 +109,14 @@ std::vector<std::string> Search_Utils::find_file(const std::string& path,
             matched = true;
         }
 
-        else {
-            size_t dist = rapidfuzz::levenshtein_distance(query, fname_lower);
+        //else {
+        //    size_t dist = rapidfuzz::levenshtein_distance(query, fname_lower);
 
-            int max_dist = compute_max_dist(query.size());
+        //    int max_dist = compute_max_dist(query.size());
 
-            if (dist <= (size_t)max_dist)
-                matched = true;
-        }
+        //    if (dist <= (size_t)max_dist)
+        //        matched = true;
+        //}
 
         if (matched) {
             result.push_back(path + "\\" + wchar_to_utf8(ffd.cFileName));
@@ -236,7 +236,20 @@ std::vector<std::string> split_and_submit(
 
 std::vector<std::string> Search_Utils::concurrent_search(
     const std::vector<std::string>& roots,
-    const std::string& target
+    std::string& target
 ) {
-    
+    BS::thread_pool pool;
+    std::vector<std::string> results;
+
+    std::vector<std::string> current_data = roots;
+    int counter = 1;
+    while (!current_data.empty())
+    {
+        split_and_submit(current_data, target, results, 64, pool);
+        current_data = gather_bulk(current_data);
+        std::cout << "searching batch : " << counter++ << ",  files searched: " << current_data.size()
+            << std::endl;
+    }
+
+    return results;
 }
