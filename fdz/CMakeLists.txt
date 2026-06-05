@@ -17,24 +17,26 @@ FetchContent_Declare(googlebenchmark
 set(BENCHMARK_ENABLE_TESTING OFF)
 FetchContent_MakeAvailable(googlebenchmark)
 
+# adding helper files
 add_library(dir_utils STATIC 
 			"dir_utils.h" 
 			"dir_utils.cpp"
- "search_utils.h" "search_utils.cpp")
+"BS_thread_pool.hpp")
+#junk, not needed
+target_include_directories(dir_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
 
 # Add source to this project's executable.
-add_executable (fdz "fdz.cpp" "fdz.h" "BS_thread_pool.hpp")
+add_executable (fdz "fdz.cpp" "fdz.h" "search_utils.h" "search_utils.cpp" "BS_thread_pool.hpp")
 
+target_link_libraries(fdz PRIVATE dir_utils)
 target_link_libraries(fdz PRIVATE rapidfuzz::rapidfuzz)
 target_link_libraries(dir_utils PUBLIC rapidfuzz::rapidfuzz)
 target_link_libraries(fdz PRIVATE benchmark::benchmark benchmark::benchmark_main)
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET fdz PROPERTY CXX_STANDARD 20)
-endif()
 
-# TODO: Add tests and install targets if needed.
-Include(FetchContent)
+# TODO: Tests and install targets.
+include(FetchContent)
 
 FetchContent_Declare(
   Catch2
@@ -44,7 +46,11 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
-add_executable(tests "tests/test_dir_utills.cpp" "tests/test_search_utils.cpp")
+add_executable(tests 
+	"tests/test_dir_utills.cpp" 
+	"tests/test_search_utils.cpp"
+	"search_utils.h"
+    "search_utils.cpp")
 target_link_libraries(tests PRIVATE dir_utils Catch2::Catch2WithMain)
 
 include(Catch)

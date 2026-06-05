@@ -7,24 +7,92 @@
 #include <Windows.h>
 
 Dir_Utils::Dir_Utils() : SKIP_DIR_LIST({
-	"node_modules",
-	".git",
-	".svn",
-	"build",
-	"cmake-build-debug",
-	"cmake-build-release",
-	"__pycache__",
-	".vs",
-	".idea",
-	"vendor",
-	"bower_components",
-	"target",          // Rust
-	"obj",             // .NET
-	"bin",             // often build output
-	".cache",
-	"dist",
-	"out"
+    // VCS
+    ".git",
+    ".svn",
+    ".hg",
+
+    // MSVC / Visual Studio
+    ".vs",
+    "ipch",
+    "Debug",
+    "Release",
+    "RelWithDebInfo",
+    "MinSizeRel",
+    "x64",
+    "Win32",
+    "ARM64",
+    "ARM",
+
+    // CMake / build systems
+    "build",
+    "cmake-build-debug",
+    "cmake-build-release",
+    "CMakeFiles",
+    "_deps",
+
+    // Dependencies / third-party
+    "node_modules",
+    "vendor",
+    "bower_components",
+    "third_party",
+    "third-party",
+    "deps",
+    "packages",
+    "external",
+
+    // Java / Maven / Gradle (Lucene, Solr, etc.)
+    "target",
+    "classes",
+    "test-classes",
+    ".gradle",
+    "gradle",
+
+    // Qt generated
+    "moc",
+    "rcc",
+    "uic",
+    ".rcc",
+
+    // .NET / C#
+    "obj",
+    "bin",
+
+    // Python
+    "__pycache__",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".venv",
+    "venv",
+    "env",
+
+    // Rust
+    "target",
+
+    // General build / output
+    "out",
+    "dist",
+    ".cache",
+    "coverage",
+    "htmlcov",
+    "test_output",
+    "logs",
+    "tmp",
+    "temp",
+    "backup",
+
+    // IDE
+    ".idea",
+    ".vscode",
+    ".eclipse",
+
+    // system dirs
+    "$recycle.bin"
 	}) {
+}
+
+std::unordered_set<std::string> Dir_Utils::get_skip_list() {
+	return this->SKIP_DIR_LIST;
 }
 
 void Dir_Utils::lower(std::wstring& s)  {

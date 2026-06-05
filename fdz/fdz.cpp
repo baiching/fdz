@@ -11,6 +11,7 @@
 #include <rapidfuzz/distance/Levenshtein.hpp>
 #include <unordered_set>
 #include <string>
+#include "search_utils.h"
 
 #pragma comment(lib, "Shlwapi.lib")
 
@@ -231,9 +232,9 @@ int main(int argc, char* argv[])
     case 1:
         // No arguments
         current_batch = get_user_search_dirs();  // or your default logic
-        target_file = "";
+        target_file = ".txt";
         std::cout << "Please enter arguments. EXAMPLE:\n" << "fdz [TARGET_PATH/DIRECTORY] [TARGET_PATH]" << std::endl;
-        return 0;
+        //return 0;
         break;
 
     case 2:
@@ -264,10 +265,11 @@ int main(int argc, char* argv[])
     std::string result_path;
     std::mutex result_mutex;
 
+    auto search = std::make_unique<Search_Utils>();
+    //auto matches = search_all_files_bfs(current_batch, target_file);
+    auto matches = search->concurrent_search(current_batch, target_file);
 
-    auto matches = search_all_files_bfs(current_batch, target_file);
-
-    if (matches.empty()) {   // ← vector::empty() – correct!
+    if (matches.empty()) {   
         std::cout << "No files found.\n";
     }
     else {

@@ -1,13 +1,15 @@
+#pragma once
 #include <string>
 #include <vector>
 #include <unordered_set>
 #include <Windows.h>
 #include <array>
 #include <shlobj.h> 
-#pragma once
 class Dir_Utils {
 public:
 	Dir_Utils();
+
+	std::unordered_set<std::string> get_skip_list();
 
 	// to convert a string to lowercase 
 	// (for case-insensitive comparison) 
