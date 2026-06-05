@@ -203,7 +203,7 @@ static std::vector<std::string> gather_bulk(std::vector<std::string> &batch) {
     return dir_bulk;
 }
 
-std::vector<std::string> split_and_submit(
+void split_and_submit(
     std::vector<std::string> &bulk,
     std::string &target,
     std::vector<std::string> &out_results,
@@ -212,7 +212,7 @@ std::vector<std::string> split_and_submit(
 ) {
     auto result_mutex = std::make_shared<std::mutex>();
 
-    if (bulk.empty()) return out_results;
+    if (bulk.empty()) return;
 
     for (int i = 0; i < bulk.size(); i += batch_size) {
         std::size_t end = std::min<std::size_t>(i + batch_size, bulk.size());
@@ -229,9 +229,9 @@ std::vector<std::string> split_and_submit(
             });
     }
 
-    pool.wait();
+    //pool.wait();
 
-    return out_results;
+    //return out_results;
 }
 
 std::vector<std::string> Search_Utils::concurrent_search(
@@ -250,6 +250,6 @@ std::vector<std::string> Search_Utils::concurrent_search(
         std::cout << "searching batch : " << counter++ << ",  files searched: " << current_data.size()
             << std::endl;
     }
-
+    pool.wait();
     return results;
 }

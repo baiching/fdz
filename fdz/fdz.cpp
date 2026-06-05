@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
     case 1:
         // No arguments
         current_batch = get_user_search_dirs();  // or your default logic
-        target_file = ".txt";
+        target_file = "baichingcv";
         std::cout << "Please enter arguments. EXAMPLE:\n" << "fdz [TARGET_PATH/DIRECTORY] [TARGET_PATH]" << std::endl;
         //return 0;
         break;
