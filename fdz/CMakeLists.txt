@@ -2,12 +2,6 @@
 # project specific logic here.
 #
 include(FetchContent)
-FetchContent_Declare(
-  rapidfuzz
-  GIT_REPOSITORY https://github.com/rapidfuzz/rapidfuzz-cpp.git
-  GIT_TAG        v3.3.3 
-)
-FetchContent_MakeAvailable(rapidfuzz)
 
 # Google benchmark
 FetchContent_Declare(googlebenchmark
@@ -30,8 +24,6 @@ target_include_directories(dir_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 add_executable (fdz "fdz.cpp" "fdz.h" "search_utils.h" "search_utils.cpp" "BS_thread_pool.hpp")
 
 target_link_libraries(fdz PRIVATE dir_utils)
-target_link_libraries(fdz PRIVATE rapidfuzz::rapidfuzz)
-target_link_libraries(dir_utils PUBLIC rapidfuzz::rapidfuzz)
 target_link_libraries(fdz PRIVATE benchmark::benchmark benchmark::benchmark_main)
 
 

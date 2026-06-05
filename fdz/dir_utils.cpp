@@ -91,8 +91,8 @@ Dir_Utils::Dir_Utils() : SKIP_DIR_LIST({
 	}) {
 }
 
-std::unordered_set<std::string> Dir_Utils::get_skip_list() {
-	return this->SKIP_DIR_LIST;
+const std::unordered_set<std::string> Dir_Utils::get_skip_list() const {
+	return SKIP_DIR_LIST;
 }
 
 void Dir_Utils::lower(std::wstring& s)  {

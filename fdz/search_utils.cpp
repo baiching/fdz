@@ -2,6 +2,7 @@
 #include "dir_utils.h"
 #include <algorithm>
 #include <Windows.h>
+#include <chrono>
 
 static std::string wchar_to_utf8(const wchar_t* wstr) {
 	int len = WideCharToMultiByte(
@@ -64,9 +65,10 @@ static int compute_max_dist(size_t len) {
 
 std::vector<std::string> Search_Utils::find_file(const std::string& path,
 	const std::string& target,
-	const std::atomic<bool>* stop)
+	const std::atomic<bool>* stop,
+    Dir_Utils &dir_utils)
 {
-	Dir_Utils dir_utils;
+	//Dir_Utils dir_utils;
     std::vector<std::string> result;
 	
     std::wstring query = utf8_to_wchar(target.c_str());
@@ -164,11 +166,12 @@ static void process_batch(
     std::vector<std::string>& batch, 
     std::string &target,
     std::vector<std::string> &out_results,
-    std::mutex &result_mutex
+    std::mutex &result_mutex,
+    Search_Utils &srh,
+    Dir_Utils &dir_utils
 ) {
-    auto srh = std::make_unique<Search_Utils>();
     for (const auto &dir : batch) {
-        auto local = srh->find_file(dir, target, nullptr);
+        auto local = srh.find_file(dir, target, nullptr, dir_utils);
 
         if (!local.empty()) {
             std::lock_guard lock(result_mutex);
@@ -181,9 +184,11 @@ static void process_batch(
     }
 }
 
-static std::vector<std::string> gather_bulk(std::vector<std::string> &batch) {
-    Search_Utils srh;
-    Dir_Utils dir_utils;
+static std::vector<std::string> gather_bulk(
+    std::vector<std::string> &batch,
+    Search_Utils &srh,
+    Dir_Utils &dir_utils
+    ) {
     std::vector<std::string> dir_bulk;
 
     std::unordered_set<std::string> skip_list = dir_utils.get_skip_list();
@@ -208,13 +213,16 @@ void split_and_submit(
     std::string &target,
     std::vector<std::string> &out_results,
     std::size_t batch_size,
-    BS::thread_pool<> &pool
+    BS::thread_pool<> &pool,
+    Search_Utils &srh,
+    Dir_Utils &dir_utils
 ) {
+
     auto result_mutex = std::make_shared<std::mutex>();
 
     if (bulk.empty()) return;
 
-    for (int i = 0; i < bulk.size(); i += batch_size) {
+    for (size_t i = 0; i < bulk.size(); i += batch_size) {
         std::size_t end = std::min<std::size_t>(i + batch_size, bulk.size());
 
         std::vector<std::string> batch(bulk.begin() + i, bulk.begin() + end);
@@ -223,9 +231,11 @@ void split_and_submit(
             batch = std::move(batch),
             &target,
             &out_results,
-            result_mutex
+            result_mutex,
+            &srh,
+            &dir_utils
         ] () mutable {
-            process_batch(batch, target, out_results, *result_mutex);
+            process_batch(batch, target, out_results, *result_mutex, srh, dir_utils);
             });
     }
 
@@ -238,18 +248,28 @@ std::vector<std::string> Search_Utils::concurrent_search(
     const std::vector<std::string>& roots,
     std::string& target
 ) {
+    auto t0 = std::chrono::steady_clock::now();
+
     BS::thread_pool pool;
     std::vector<std::string> results;
+    Search_Utils srh;
+    Dir_Utils dir_utils;
 
     std::vector<std::string> current_data = roots;
-    int counter = 1;
+    //size_t file_counter = 0;
+    std::cout << "searching batch : ";
     while (!current_data.empty())
     {
-        split_and_submit(current_data, target, results, 64, pool);
-        current_data = gather_bulk(current_data);
-        std::cout << "searching batch : " << counter++ << ",  files searched: " << current_data.size()
-            << std::endl;
+        split_and_submit(current_data, target, results, 64, pool, srh, dir_utils);
+        current_data = gather_bulk(current_data, srh, dir_utils);
+        std::cout << ".";
     }
+    std::cout << std::endl;
     pool.wait();
+
+    auto t1 = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    std::cout << "Done in " << ms << "ms and found " << results.size() << " files" << std::endl;
+
     return results;
 }

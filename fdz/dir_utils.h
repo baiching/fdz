@@ -9,7 +9,7 @@ class Dir_Utils {
 public:
 	Dir_Utils();
 
-	std::unordered_set<std::string> get_skip_list();
+	const std::unordered_set<std::string> get_skip_list() const;
 
 	// to convert a string to lowercase 
 	// (for case-insensitive comparison) 
