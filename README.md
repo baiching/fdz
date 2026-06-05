@@ -1,16 +1,15 @@
-# fdz — find fuzzy
+# fdz: find fuzzy
 
 A fast, multi-threaded Windows file finder that searches directories in parallel using Win32 API and BS::thread_pool.
 
-No recursive directory walkers. No garbage abstractions. BFS + bulk-async — it discovers directories and searches them concurrently in a single tight loop.
+No recursive directory walkers. No garbage abstractions. BFS + bulk-async. It discovers directories and searches them concurrently in a single tight loop.
 
 ## Usage
 
 ```
 fdz <pattern>            Search user folders + non-C: drives
 fdz <path> <pattern>     Search a specific directory
-fdz <path>               Search a directory (interactive, enter pattern)
-fdz                      No args — prints usage hint
+fdz                      No args: prints usage hint
 ```
 
 **Examples:**
@@ -44,7 +43,7 @@ cmake --build build --config Release
 
 ### From Visual Studio
 
-Open the `fdz/` folder in Visual Studio 2022, select your configuration (Debug/Release), and build. CMake presets handle the rest.
+Open the `fdz/` folder in Visual Studio 2022, select your configuration (Debug/Release) and build. CMake presets handle the rest.
 
 ## Dependencies
 
@@ -55,8 +54,6 @@ All fetched automatically by CMake via `FetchContent`:
 | [BS::thread_pool](https://github.com/bshoshany/thread-pool) | Thread pool for parallel directory search | `BS_thread_pool.hpp` included in-tree |
 | [Catch2](https://github.com/catchorg/Catch2) v3.15+ | Unit testing | FetchContent (auto) |
 | [Google Benchmark](https://github.com/google/benchmark) | Performance benchmarking | FetchContent (auto) |
-
-No other external dependencies. No vcpkg, no Conan.
 
 ## Testing
 
