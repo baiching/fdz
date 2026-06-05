@@ -1,5 +1,5 @@
 #pragma once
-#include "./BS_thread_pool.hpp"
+#include "BS_thread_pool.hpp"
 #include "dir_utils.h"
 #include <string>
 #include <vector>

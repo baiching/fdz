@@ -1,14 +1,10 @@
 ﻿#include <Windows.h>
 #include "BS_thread_pool.hpp"
-#include <atomic>
 #include <iostream>
-#include <optional>
-#include <memory>
 #include <objbase.h>
 #include <shlobj.h>
 #include <shlwapi.h>
 #include <filesystem>
-#include <unordered_set>
 #include <string>
 #include "search_utils.h"
 #include "Dir_utils.h"
@@ -17,9 +13,8 @@
 
 int main(int argc, char* argv[])
 {
-    //std::string root_path =  std::filesystem::is_directory((std::filesystem::path)argv[1]) ? argv[1] : ".";
-    std::string root_path;// = (argc > 1) ? argv[1] : "E:\\";
-    std::string target_file;// = (argc > 2) ? argv[2] : "BaichingCV.pdf";
+    std::string root_path;
+    std::string target_file;
     Dir_Utils du;
 
 
@@ -28,27 +23,26 @@ int main(int argc, char* argv[])
     switch (argc) {
     case 1:
         // No arguments
-        current_batch = du.get_user_search_dirs();  // or your default logic
-        target_file = "baichingcv";
+        current_batch = du.get_user_search_dirs();  
+        target_file = "";
         std::cout << "Please enter arguments. EXAMPLE:\n" << "fdz [TARGET_PATH/DIRECTORY] [TARGET_PATH]" << std::endl;
-        //return 0;
+        return 0;
         break;
 
     case 2:
-        // One argument - could be path or filename
-        // You need business logic to decide
         if (std::filesystem::is_directory(argv[1])) {
             current_batch = { argv[1] };
             target_file = "";
+            std::cout << "Please enter arguments. EXAMPLE:\n" << "fdz [TARGET_PATH/DIRECTORY] [TARGET_PATH]" << std::endl;
+            return 0;
         }
         else {
-            current_batch = du.get_user_search_dirs();;  // current directory
+            current_batch = du.get_user_search_dirs();;  
             target_file = argv[1];
         }
         break;
 
     case 3:
-        // Both arguments provided
         current_batch = { argv[1] };
         target_file = argv[2];
         break;
