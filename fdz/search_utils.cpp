@@ -112,15 +112,6 @@ std::vector<std::string> Search_Utils::find_file(const std::string& path,
             matched = true;
         }
 
-        //else {
-        //    size_t dist = rapidfuzz::levenshtein_distance(query, fname_lower);
-
-        //    int max_dist = compute_max_dist(query.size());
-
-        //    if (dist <= (size_t)max_dist)
-        //        matched = true;
-        //}
-
         if (matched) {
             result.push_back(path + "\\" + wchar_to_utf8(ffd.cFileName));
         }
@@ -239,18 +230,12 @@ void split_and_submit(
             process_batch(batch, target, out_results, *result_mutex, srh, dir_utils);
             });
     }
-
-    //pool.wait();
-
-    //return out_results;
 }
 
 std::vector<std::string> Search_Utils::concurrent_search(
     const std::vector<std::string>& roots,
     std::string& target
 ) {
-    //auto t0 = std::chrono::steady_clock::now();
-
     BS::thread_pool pool;
     std::vector<std::string> results;
     Search_Utils srh;
@@ -267,10 +252,6 @@ std::vector<std::string> Search_Utils::concurrent_search(
     }
     std::cout << std::endl;
     pool.wait();
-
-    //auto t1 = std::chrono::steady_clock::now();
-    //auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-    //std::cout << "Done in " << ms << "ms and found " << results.size() << " files" << std::endl;
 
     return results;
 }

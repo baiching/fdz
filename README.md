@@ -2,7 +2,7 @@
 
 A fast, multi-threaded Windows file finder that searches directories in parallel using Win32 API and BS::thread_pool.
 
-No recursive directory walkers. No garbage abstractions. BFS + bulk-async. It discovers directories and searches them concurrently in a single tight loop.
+BFS style walk + batch directories processing. It discovers directories and searches them concurrently in a single tight loop.
 
 ## Usage
 
@@ -17,11 +17,13 @@ fdz                      No args: prints usage hint
 fdz invoice.pdf
 fdz D:\projects main.cpp
 fdz C:\Users\me\Documents tax
+fdz . tax                           <-- the dot means current location
 ```
 
 When no path is given and only one argument is provided, fdz automatically searches:
 - Desktop, Downloads, Documents, Pictures, Music, Videos
 - All fixed drives **except** C:\ (which might require special permissions to scan, to protect the system files)
+- By Default it skips C:\ drive, but if explicily givent C-drive as the path, it will scan that drive
 
 Results are printed to stdout, one path per line.
 
@@ -32,14 +34,6 @@ Results are printed to stdout, one path per line.
 - **Windows 10 SDK** or later
 - **Visual Studio 2022** (or any MSVC toolchain supporting C++20)
 - **CMake** 3.10+
-
-### From command line
-
-```powershell
-cmake -B build
-cmake --build build --config Release
-.\build\fdz\Release\fdz.exe <pattern>
-```
 
 ### From Visual Studio
 
@@ -57,12 +51,8 @@ All fetched automatically by CMake via `FetchContent`:
 
 ## Testing
 
-```powershell
-cmake -B build
-cmake --build build --config Debug
-cd build
-ctest --output-on-failure
-```
+### From Visual Studio
+On navigation bar select **Test** -> **run Ctests for fdz**
 
 ## How it works
 
@@ -90,4 +80,4 @@ fdz/
 
 ## License
 
-MIT
+[MIT](LICENSE.txt)

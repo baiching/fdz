@@ -42,10 +42,10 @@ FetchContent_MakeAvailable(Catch2)
 add_executable(tests 
 	"tests/test_dir_utills.cpp" 
 	"tests/test_search_utils.cpp"
-	"search_utils.h"
     "search_utils.cpp"
-	"dir_utils.h" 
 	"dir_utils.cpp")
+
+target_include_directories(tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
 include(Catch)
