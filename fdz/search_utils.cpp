@@ -70,6 +70,7 @@ std::vector<std::string> Search_Utils::find_file(const std::string& path,
 {
 	//Dir_Utils dir_utils;
     std::vector<std::string> result;
+    result.reserve(1024);
 	
     std::wstring query = utf8_to_wchar(target.c_str());
     std::wstring pattern = utf8_to_wchar(path.c_str()) + L"\\*";
@@ -248,7 +249,7 @@ std::vector<std::string> Search_Utils::concurrent_search(
     const std::vector<std::string>& roots,
     std::string& target
 ) {
-    auto t0 = std::chrono::steady_clock::now();
+    //auto t0 = std::chrono::steady_clock::now();
 
     BS::thread_pool pool;
     std::vector<std::string> results;
@@ -267,9 +268,9 @@ std::vector<std::string> Search_Utils::concurrent_search(
     std::cout << std::endl;
     pool.wait();
 
-    auto t1 = std::chrono::steady_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-    std::cout << "Done in " << ms << "ms and found " << results.size() << " files" << std::endl;
+    //auto t1 = std::chrono::steady_clock::now();
+    //auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    //std::cout << "Done in " << ms << "ms and found " << results.size() << " files" << std::endl;
 
     return results;
 }

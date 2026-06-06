@@ -12,18 +12,19 @@ set(BENCHMARK_ENABLE_TESTING OFF)
 FetchContent_MakeAvailable(googlebenchmark)
 
 # adding helper files
-add_library(dir_utils STATIC 
-			"dir_utils.h" 
-			"dir_utils.cpp"
-"BS_thread_pool.hpp")
+#add_library(dir_utils STATIC 
+#			"dir_utils.h" 
+#			"dir_utils.cpp"
+#"BS_thread_pool.hpp")
 #junk, not needed
-target_include_directories(dir_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+#target_include_directories(dir_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 # Add source to this project's executable.
-add_executable (fdz "fdz.cpp" "fdz.h" "search_utils.h" "search_utils.cpp" "BS_thread_pool.hpp")
+add_executable (fdz "fdz.cpp" "fdz.h" "search_utils.h" "search_utils.cpp" "dir_utils.h" 
+			"dir_utils.cpp" "BS_thread_pool.hpp")
 
-target_link_libraries(fdz PRIVATE dir_utils)
+#target_link_libraries(fdz PRIVATE dir_utils)
 target_link_libraries(fdz PRIVATE benchmark::benchmark benchmark::benchmark_main)
 
 
@@ -42,8 +43,10 @@ add_executable(tests
 	"tests/test_dir_utills.cpp" 
 	"tests/test_search_utils.cpp"
 	"search_utils.h"
-    "search_utils.cpp")
-target_link_libraries(tests PRIVATE dir_utils Catch2::Catch2WithMain)
+    "search_utils.cpp"
+	"dir_utils.h" 
+	"dir_utils.cpp")
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
 include(Catch)
 catch_discover_tests(tests)
