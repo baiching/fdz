@@ -55,12 +55,10 @@ All fetched automatically by CMake via `FetchContent`:
 On navigation bar select **Test** -> **run Ctests for fdz**
 
 ## How it works
-
-- **BFS directory walk**: discovers directories level by level, not recursively. Avoids deep stacks and gives fine-grained parallelism.
-- **Bulk-async dispatch**: batches of 64 directories are detached into the thread pool; the main thread concurrently harvests the next level of subdirectories while the pool processes the current level.
-- **Win32 `FindFirstFileExW`** with `FIND_FIRST_EX_LARGE_FETCH` for fast directory enumeration.
-- **Case-insensitive matching** via exact match and substring match on lowered filenames.
-- **Skip list**: ignores VCS dirs (`.git`), build output (`Debug`, `build`, `_deps`, `node_modules`), IDE junk (`.vs`, `.idea`), and other noise — see `dir_utils.cpp` for the full list.
+- Scans directories in parallel using a thread pool
+- Batches directories to reduce contention
+- Skips common noise folders (`node_modules`, `cache`, `temp`)
+- No indexing, no background service – just fast traversal
 
 ## Project structure
 
