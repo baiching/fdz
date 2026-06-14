@@ -246,7 +246,7 @@ std::vector<std::string> Search_Utils::concurrent_search(
     std::cout << "searching batch : ";
     while (!current_data.empty())
     {
-        split_and_submit(current_data, target, results, 64, pool, srh, dir_utils);
+        split_and_submit(current_data, target, results, 128, pool, srh, dir_utils);
         current_data = gather_bulk(current_data, srh, dir_utils);
         std::cout << ".";
     }
