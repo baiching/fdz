@@ -14,7 +14,8 @@ public:
         const std::string& target,
         const std::atomic<bool>* stop,
         std::vector<std::string>& dirs,
-        Dir_Utils& dir_utils);
+        Dir_Utils& dir_utils,
+        std::unordered_set<std::string>& skip_list);
 
     std::vector<std::string> list_subdirs(const std::string& path,
         const std::atomic<bool>* stop = nullptr);

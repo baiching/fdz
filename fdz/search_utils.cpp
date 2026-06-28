@@ -74,7 +74,8 @@ void Search_Utils::find_file(const std::string& path,
 	const std::string& target,
 	const std::atomic<bool>* stop,
     std::vector<std::string> &dirs,
-    Dir_Utils &dir_utils)
+    Dir_Utils &dir_utils,
+    std::unordered_set<std::string> &skip_list)
 {
 	//Dir_Utils dir_utils;
 	
@@ -102,7 +103,16 @@ void Search_Utils::find_file(const std::string& path,
 
         if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) { 
             //modified
-            dirs.push_back(path + "\\" + wchar_to_utf8(ffd.cFileName));
+            std::string filename = wchar_to_utf8(ffd.cFileName);
+            std::string fname = filename;
+
+            for (char& c : fname) {
+                c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+            }
+            if (skip_list.find(fname) == skip_list.end())
+            {
+                dirs.push_back(path + "\\" + filename);
+            }
         }
 
         std::wstring fname(ffd.cFileName);
@@ -133,11 +143,13 @@ void process_directories(std::unique_ptr<batch_s> batch,std::string &target, Sea
     Dir_Utils dirutils;
     std::vector<std::string> dir_collection;
     dir_collection.reserve(1024);
+    std::unordered_set<std::string> skip_list = dirutils.get_skip_list();
     //std::unique_ptr<batch_s> batch = get_batch();
 
     for (const auto &dir : batch->data) {
-        srh.find_file(dir, target, nullptr, dir_collection, dirutils);
+        srh.find_file(dir, target, nullptr, dir_collection, dirutils, skip_list);
     }
+
 
     for (size_t i = 0; i < dir_collection.size(); i+=batch_size)
     {
@@ -165,7 +177,7 @@ void Search_Utils::concurrent_search(
     size_t batch_size = 128;
 
     size_t file_counter = 0;
-    std::cout << "searching batch : ";
+    std::cout << "searching batch : " << std::endl;
 
     auto initial_batch = std::make_unique<batch_s>();
     initial_batch->data = roots;
