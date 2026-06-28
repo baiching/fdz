@@ -98,19 +98,21 @@ int main(int argc, char* argv[]) {
     auto start = std::chrono::steady_clock::now();
 
     auto search = std::make_unique<Search_Utils>();
-    auto matches = search->concurrent_search(current_batch, target_file);
+    search->concurrent_search(current_batch, target_file);
 
     auto end = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-    if (matches.empty()) {
-        std::cout << "No files found.\n";
-    }
-    else {
-        std::cout << "Found " << matches.size() << " file(s) in " << elapsed << "ms:\n";
-        for (const auto& path : matches)
-            std::cout << "  " << path << "\n";
-    }
+    //if (matches.empty()) {
+    //    std::cout << "No files found.\n";
+    //}
+    //else {
+    //    std::cout << "Found " << matches.size() << " file(s) in " << elapsed << "ms:\n";
+    //    for (const auto& path : matches)
+    //        std::cout << "  " << path << "\n";
+    //}
+
+    std::cout << "Found file(s) in " << elapsed << "ms:\n";
 
     return 0;
 }
