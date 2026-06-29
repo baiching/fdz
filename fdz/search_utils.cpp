@@ -177,7 +177,7 @@ void Search_Utils::concurrent_search(
     size_t batch_size = 128;
 
     size_t file_counter = 0;
-    std::cout << "searching batch : " << std::endl;
+    std::cout << "results : " << std::endl;
 
     auto initial_batch = std::make_unique<batch_s>();
     initial_batch->data = roots;
