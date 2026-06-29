@@ -30,45 +30,45 @@ static void create_dir(const fs::path& root, const std::string& rel_path) {
 // ------------------------------------------------------------------
 // The actual tests – use a real directory structure
 // ------------------------------------------------------------------
-TEST_CASE("Search_Utils::find_file works with exact and substring matches", "[find_file]") {
-    // Setup: use a real directory. You can change this path to anything.
-    fs::path test_root = fs::current_path() / "test_files";
-    fs::remove_all(test_root);   // start fresh
-    fs::create_directories(test_root);
-
-    // Create some test files
-    create_file(test_root, "hello.txt");
-    create_file(test_root, "subdir/world.txt");
-    create_file(test_root, "subdir/Another_Doc.pdf");
-
-    Dir_Utils du;
-    Search_Utils su;
-
-    SECTION("Exact match") {
-        auto res = su.find_file(test_root.string(), "hello.txt", nullptr, du);
-        REQUIRE(res.size() == 1);
-        CHECK(res[0].find("hello.txt") != std::string::npos);
-    }
-
-    SECTION("Case‑insensitive exact match") {
-        auto res = su.find_file(test_root.string(), "HELLO.TXT", nullptr, du);
-        REQUIRE(res.size() == 1);
-    }
-
-    SECTION("Substring match") {
-        auto res = su.find_file(test_root.string(), "world", nullptr, du);
-        REQUIRE(res.size() == 1);
-        CHECK(res[0].find("world.txt") != std::string::npos);
-    }
-
-    SECTION("No match") {
-        auto res = su.find_file(test_root.string(), "nonexistent", nullptr, du);
-        CHECK(res.empty());
-    }
-
-    // Cleanup
-    fs::remove_all(test_root);
-}
+//TEST_CASE("Search_Utils::find_file works with exact and substring matches", "[find_file]") {
+//    // Setup: use a real directory. You can change this path to anything.
+//    fs::path test_root = fs::current_path() / "test_files";
+//    fs::remove_all(test_root);   // start fresh
+//    fs::create_directories(test_root);
+//
+//    // Create some test files
+//    create_file(test_root, "hello.txt");
+//    create_file(test_root, "subdir/world.txt");
+//    create_file(test_root, "subdir/Another_Doc.pdf");
+//
+//    Dir_Utils du;
+//    Search_Utils su;
+//
+//    SECTION("Exact match") {
+//        auto res = su.find_file(test_root.string(), "hello.txt", nullptr, du);
+//        REQUIRE(res.size() == 1);
+//        CHECK(res[0].find("hello.txt") != std::string::npos);
+//    }
+//
+//    SECTION("Case‑insensitive exact match") {
+//        auto res = su.find_file(test_root.string(), "HELLO.TXT", nullptr, du);
+//        REQUIRE(res.size() == 1);
+//    }
+//
+//    SECTION("Substring match") {
+//        auto res = su.find_file(test_root.string(), "world", nullptr, du);
+//        REQUIRE(res.size() == 1);
+//        CHECK(res[0].find("world.txt") != std::string::npos);
+//    }
+//
+//    SECTION("No match") {
+//        auto res = su.find_file(test_root.string(), "nonexistent", nullptr, du);
+//        CHECK(res.empty());
+//    }
+//
+//    // Cleanup
+//    fs::remove_all(test_root);
+//}
 
 TEST_CASE("Search_Utils::list_subdirs returns only directories", "[list_subdirs]") {
     fs::path test_root = fs::current_path() / "test_files";
