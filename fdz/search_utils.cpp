@@ -21,13 +21,12 @@ void Search_Utils::find_file(const std::string& path,
     Dir_Utils &dir_utils,
     std::unordered_set<std::string> &skip_list)
 {
-	//Dir_Utils dir_utils;
-	
+    std::string color;
     std::wstring query = utf8_to_wchar(target.c_str());
     std::wstring pattern = utf8_to_wchar(path.c_str()) + L"\\*";
 
     WIN32_FIND_DATAW ffd;
-    dir_utils.lower(query);
+    dir_utils.wlower(query);
 
     HANDLE hFind = FindFirstFileExW(
         pattern.c_str(),
@@ -49,6 +48,7 @@ void Search_Utils::find_file(const std::string& path,
             //modified
             std::string filename = wchar_to_utf8(ffd.cFileName);
             std::string fname = filename;
+            color = COLOR_DIR;
 
             for (char& c : fname) {
                 c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
@@ -59,9 +59,21 @@ void Search_Utils::find_file(const std::string& path,
             }
         }
 
+        else if (ffd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+            color = COLOR_REPARSE;
+        }
+        else if(ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
+        {
+            color = COLOR_HIDDEN;
+        }
+        else
+        {
+            color = COLOR_FILE;
+        }
+
         std::wstring fname(ffd.cFileName);
         std::wstring fname_lower = fname;
-        dir_utils.lower(fname_lower);
+        dir_utils.wlower(fname_lower);
 
         bool matched = false;
 
@@ -75,7 +87,7 @@ void Search_Utils::find_file(const std::string& path,
 
         if (matched) {
             //result_q.enqueue(path + "\\" + wchar_to_utf8(ffd.cFileName));
-            std::osyncstream(std::cout) << "\033[32m" << path << "\\" << wchar_to_utf8(ffd.cFileName) << "\033[0m" <<'\n';
+            std::osyncstream(std::cout) << COLOR_DIR << path << "\\" << color << wchar_to_utf8(ffd.cFileName) << COLOR_RESET <<'\n';
         }
 
     } while (FindNextFileW(hFind, &ffd) != 0);
