@@ -1,10 +1,10 @@
 #include "dir_utils.h"
 #include <algorithm>
-#include <cctype>
+#include <locale>
+#include <cwctype>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <Windows.h>
 
 Dir_Utils::Dir_Utils() : SKIP_DIR_LIST({
     // VCS
@@ -95,10 +95,12 @@ const std::unordered_set<std::string> Dir_Utils::get_skip_list() const {
 	return SKIP_DIR_LIST;
 }
 
-void Dir_Utils::lower(std::wstring& s)  {
+void Dir_Utils::wlower(std::wstring& s)  {
+    std::locale loc(""); //system default locale
+    const std::ctype<wchar_t>& f = std::use_facet<std::ctype<wchar_t>>(loc);
 
 	std::transform(s.begin(), s.end(), s.begin(),
-		[](unsigned char c) { return std::tolower(c); });
+		[&f](wchar_t c) { return f.tolower(c); });
 
 }
 std::string Dir_Utils::filename_from_path(const std::string& fullpath) {
