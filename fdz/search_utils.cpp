@@ -170,13 +170,23 @@ void Search_Utils::concurrent_search(
     const std::vector<std::string>& roots,
     std::string& target
 ) {
+    
+    if (target.empty())
+    {
+        //std::filesystem
+        if (!fs::exists(roots.front()) || !fs::is_directory(roots.front())) return;
+        for (const auto& entry : fs::directory_iterator(roots.front())) {
+            std::cout << entry.path() << '\n';
+        }
+        return;
+    }
+
     BS::thread_pool pool;
     std::vector<std::string> results;
     Search_Utils srh;
     Dir_Utils dir_utils;
-    size_t batch_size = 128;
+    size_t batch_size = 256;
 
-    size_t file_counter = 0;
     std::cout << "results : " << std::endl;
 
     auto initial_batch = std::make_unique<batch_s>();
