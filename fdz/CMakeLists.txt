@@ -46,7 +46,7 @@ add_executable(tests
 target_include_directories(tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 #target_link_libraries(tests PRIVATE Catch2::Catch2WithMain) #shall get removed
-target_link_libraries(tests PRIVATE GTest::gtest_main Shlwapi.lib)
+target_link_libraries(tests PRIVATE GTest::gtest_main GTest::gmock_main Shlwapi.lib)
 
 include(GoogleTest)
 gtest_discover_tests(tests)
