@@ -2,6 +2,7 @@
 #include "BS_thread_pool.hpp"
 #include "dir_utils.h"
 #include "concurrentqueue.h"
+#include "task_queue.h"
 #include <string>
 #include <vector>
 #include <atomic>
@@ -25,6 +26,8 @@ extern moodycamel::ConcurrentQueue<std::string> result_q;
 
 class Search_Utils {
 public:
+    void process_directories(std::unique_ptr<batch_s> batch, std::string& target, Search_Utils& srh, size_t batch_size);
+
     void find_file(const std::string& path,
         const std::string& target,
         const std::atomic<bool>* stop,
@@ -32,9 +35,7 @@ public:
         Dir_Utils& dir_utils,
         std::unordered_set<std::string>& skip_list);
 
-    std::vector<std::string> list_subdirs(const std::string& path,
-        const std::atomic<bool>* stop = nullptr);
-
+    //it calls process_directories
     void concurrent_search(
         const std::vector<std::string> &roots,
         std::string &target);

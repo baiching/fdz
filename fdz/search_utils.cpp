@@ -95,7 +95,7 @@ void Search_Utils::find_file(const std::string& path,
     FindClose(hFind);
 }
 
-void process_directories(std::unique_ptr<batch_s> batch,std::string &target, Search_Utils &srh, size_t batch_size) {
+void Search_Utils::process_directories(std::unique_ptr<batch_s> batch,std::string &target, Search_Utils &srh, size_t batch_size) {
     Dir_Utils dirutils;
     std::vector<std::string> dir_collection;
     dir_collection.reserve(1024);
@@ -166,7 +166,7 @@ void Search_Utils::concurrent_search(
                 &tasks_running,
                 batch_size
             ]() mutable {
-                    process_directories(std::move(batch), target, srh, batch_size);
+                    srh.process_directories(std::move(batch), target, srh, batch_size);
                     --tasks_running;
                 });
             
