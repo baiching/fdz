@@ -8,67 +8,11 @@
 #include "libs/logger.h"
 #include <iostream>
 #include <syncstream>
+#include <filesystem>
+#include "util/utils.h"
 
 moodycamel::ConcurrentQueue<std::string> result_q;
-
-static std::string wchar_to_utf8(const wchar_t* wstr) {
-	int len = WideCharToMultiByte(
-        CP_UTF8, 
-        0, 
-        wstr, 
-        -1, 
-        nullptr, 
-        0, 
-        nullptr, 
-        nullptr);
-
-	if (len <= 0) return {};
-
-	std::string str(len - 1, '\0');
-
-	WideCharToMultiByte(
-        CP_UTF8, 
-        0, 
-        wstr, 
-        -1, 
-        &str[0], 
-        len, 
-        nullptr, nullptr);
-
-	return str;
-}
-
-static std::wstring utf8_to_wchar(const char* utf8_str) {
-    int len = MultiByteToWideChar(
-        CP_UTF8,
-        0,
-        utf8_str,
-        -1,
-        nullptr,
-        0);
-
-    if (len <= 0) return {};
-
-    std::wstring wstr(len - 1, L'\0');
-
-    MultiByteToWideChar(
-        CP_UTF8,
-        0,
-        utf8_str,
-        -1,
-        &wstr[0],
-        len);
-
-    return wstr;
-}
-
-static int compute_max_dist(size_t len) {
-    if (len == 0) return 0;
-    int limit = static_cast<int>(len / 3);
-    if (limit < 1) limit = 1;
-    if (limit > 2) limit = 2;
-    return limit;
-}
+namespace fs = std::filesystem;
 
 void Search_Utils::find_file(const std::string& path,
 	const std::string& target,
@@ -77,13 +21,12 @@ void Search_Utils::find_file(const std::string& path,
     Dir_Utils &dir_utils,
     std::unordered_set<std::string> &skip_list)
 {
-	//Dir_Utils dir_utils;
-	
+    std::string color;
     std::wstring query = utf8_to_wchar(target.c_str());
     std::wstring pattern = utf8_to_wchar(path.c_str()) + L"\\*";
 
     WIN32_FIND_DATAW ffd;
-    dir_utils.lower(query);
+    dir_utils.wlower(query);
 
     HANDLE hFind = FindFirstFileExW(
         pattern.c_str(),
@@ -105,6 +48,7 @@ void Search_Utils::find_file(const std::string& path,
             //modified
             std::string filename = wchar_to_utf8(ffd.cFileName);
             std::string fname = filename;
+            color = COLOR_DIR;
 
             for (char& c : fname) {
                 c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
@@ -115,9 +59,21 @@ void Search_Utils::find_file(const std::string& path,
             }
         }
 
+        else if (ffd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+            color = COLOR_REPARSE;
+        }
+        else if(ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
+        {
+            color = COLOR_HIDDEN;
+        }
+        else
+        {
+            color = COLOR_FILE;
+        }
+
         std::wstring fname(ffd.cFileName);
         std::wstring fname_lower = fname;
-        dir_utils.lower(fname_lower);
+        dir_utils.wlower(fname_lower);
 
         bool matched = false;
 
@@ -131,7 +87,7 @@ void Search_Utils::find_file(const std::string& path,
 
         if (matched) {
             //result_q.enqueue(path + "\\" + wchar_to_utf8(ffd.cFileName));
-            std::osyncstream(std::cout) << "\033[32m" << path << "\\" << wchar_to_utf8(ffd.cFileName) << "\033[0m" <<'\n';
+            std::osyncstream(std::cout) << COLOR_DIR << path << "\\" << color << wchar_to_utf8(ffd.cFileName) << COLOR_RESET <<'\n';
         }
 
     } while (FindNextFileW(hFind, &ffd) != 0);
@@ -139,7 +95,7 @@ void Search_Utils::find_file(const std::string& path,
     FindClose(hFind);
 }
 
-void process_directories(std::unique_ptr<batch_s> batch,std::string &target, Search_Utils &srh, size_t batch_size) {
+void Search_Utils::process_directories(std::unique_ptr<batch_s> batch,std::string &target, Search_Utils &srh, size_t batch_size) {
     Dir_Utils dirutils;
     std::vector<std::string> dir_collection;
     dir_collection.reserve(1024);
@@ -157,7 +113,7 @@ void process_directories(std::unique_ptr<batch_s> batch,std::string &target, Sea
 
         auto new_batch = std::make_unique<batch_s>();
         new_batch->data.reserve(batch_size);
-        new_batch->data = std::vector<std::string>(
+        new_batch->data.assign(
             dir_collection.begin() + i,
             dir_collection.begin() + end
         );
@@ -170,13 +126,23 @@ void Search_Utils::concurrent_search(
     const std::vector<std::string>& roots,
     std::string& target
 ) {
+    
+    if (target.empty())
+    {
+        //std::filesystem
+        if (!fs::exists(roots.front()) || !fs::is_directory(roots.front())) return;
+        for (const auto& entry : fs::directory_iterator(roots.front())) {
+            std::cout << entry.path() << '\n';
+        }
+        return;
+    }
+
     BS::thread_pool pool;
     std::vector<std::string> results;
     Search_Utils srh;
     Dir_Utils dir_utils;
-    size_t batch_size = 128;
+    size_t batch_size = 256;
 
-    size_t file_counter = 0;
     std::cout << "results : " << std::endl;
 
     auto initial_batch = std::make_unique<batch_s>();
@@ -200,7 +166,7 @@ void Search_Utils::concurrent_search(
                 &tasks_running,
                 batch_size
             ]() mutable {
-                    process_directories(std::move(batch), target, srh, batch_size);
+                    srh.process_directories(std::move(batch), target, srh, batch_size);
                     --tasks_running;
                 });
             

@@ -2,9 +2,13 @@
 #include <string>
 #include <vector>
 #include <unordered_set>
-#include <Windows.h>
 #include <array>
+
+#ifdef _WIN32
+#include <Windows.h>
 #include <shlobj.h> 
+#endif
+
 class Dir_Utils {
 public:
 	Dir_Utils();
@@ -12,16 +16,13 @@ public:
 	const std::unordered_set<std::string> get_skip_list() const;
 
 	// to convert a string to lowercase 
-	// (for case-insensitive comparison) 
 	// or to facilaitate fuzzy matching via rapidfuzz
-	void lower(std::wstring& s);
+	void wlower(std::wstring& s);
 
 	// to extract filename from a full path
-	// (e.g., "C:\path\to\file.txt" -> "file.txt")
 	std::string filename_from_path(const std::string& fullpath);
 
 	// to get all fixed drives 
-	// (e.g., C:\, D:\) for initial search roots
 	std::vector<std::string> get_fixed_drives();
 
 	// to get paths from C drive without 
