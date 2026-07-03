@@ -8,67 +8,11 @@
 #include "libs/logger.h"
 #include <iostream>
 #include <syncstream>
+#include <filesystem>
+#include "util/utils.h"
 
 moodycamel::ConcurrentQueue<std::string> result_q;
-
-static std::string wchar_to_utf8(const wchar_t* wstr) {
-	int len = WideCharToMultiByte(
-        CP_UTF8, 
-        0, 
-        wstr, 
-        -1, 
-        nullptr, 
-        0, 
-        nullptr, 
-        nullptr);
-
-	if (len <= 0) return {};
-
-	std::string str(len - 1, '\0');
-
-	WideCharToMultiByte(
-        CP_UTF8, 
-        0, 
-        wstr, 
-        -1, 
-        &str[0], 
-        len, 
-        nullptr, nullptr);
-
-	return str;
-}
-
-static std::wstring utf8_to_wchar(const char* utf8_str) {
-    int len = MultiByteToWideChar(
-        CP_UTF8,
-        0,
-        utf8_str,
-        -1,
-        nullptr,
-        0);
-
-    if (len <= 0) return {};
-
-    std::wstring wstr(len - 1, L'\0');
-
-    MultiByteToWideChar(
-        CP_UTF8,
-        0,
-        utf8_str,
-        -1,
-        &wstr[0],
-        len);
-
-    return wstr;
-}
-
-static int compute_max_dist(size_t len) {
-    if (len == 0) return 0;
-    int limit = static_cast<int>(len / 3);
-    if (limit < 1) limit = 1;
-    if (limit > 2) limit = 2;
-    return limit;
-}
+namespace fs = std::filesystem;
 
 void Search_Utils::find_file(const std::string& path,
 	const std::string& target,
