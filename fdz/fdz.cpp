@@ -70,29 +70,27 @@ int real_main(const std::vector<std::string> &args) {
     Dir_Utils du;
     std::vector<std::string> current_batch = {};
 
-    switch (argc) {
+    switch (args.size()) {
     case 1:
         // No arguments
-        print_help("fdz");  // Show help instead of a terse message
-        return 0;
+        current_batch = { "." };
+        break;
 
     case 2:
         // Check if it's a directory or a search term
-        if (std::filesystem::is_directory(argv[1])) {
-            current_batch = { argv[1] };
+        if (std::filesystem::is_directory(args[1])) {
+            current_batch = { args[1] };
             std::cerr << "Error: No search term provided.\n\n";
-            print_help("fdz");
-            return 1;
         }
         else {
             current_batch = du.get_user_search_dirs();
-            target_file = argv[1];
+            target_file = args[1];
         }
         break;
 
     case 3:
-        current_batch = { argv[1] };
-        target_file = argv[2];
+        current_batch = { args[1] };
+        target_file = args[2];
         break;
 
     default:
@@ -101,10 +99,11 @@ int real_main(const std::vector<std::string> &args) {
         return 1;
     }
 
+    //std::cout << current_batch.data() << std::endl;
+
     std::cout << "Searching for: " << target_file << "\n";
     auto start = std::chrono::steady_clock::now();
 
-    auto search = std::make_unique<Search_Utils>();
     search->concurrent_search(current_batch, target_file);
 
     auto end = std::chrono::steady_clock::now();
