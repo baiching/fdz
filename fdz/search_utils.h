@@ -6,6 +6,21 @@
 #include <vector>
 #include <atomic>
 
+#ifdef _WIN32
+    #define COLOR_RESET   "\033[0m"         //reset
+    #define COLOR_DIR     "\033[38;5;117m"  //light blue
+    #define COLOR_REPARSE "\033[32m"        //green
+    #define COLOR_HIDDEN  "\033[90m"        //dark_grey
+    #define COLOR_FILE    "\033[93m"        //yellow
+#else
+    #define COLOR_RESET   "\033[0m"
+    #define COLOR_DIR     "\033[34m"
+    #define COLOR_REPARSE "\033[33m"
+    #define COLOR_HIDDEN  "\033[90m"
+    #define COLOR_FILE    "\033[32m"
+#endif // _WIN32
+
+
 extern moodycamel::ConcurrentQueue<std::string> result_q;
 
 class Search_Utils {
