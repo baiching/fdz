@@ -1,53 +1,60 @@
-﻿#include <Windows.h>
-#include "BS_thread_pool.hpp"
-#include <iostream>
+﻿#include <iostream>
+#include <filesystem>
+#include <string>
+#include <vector>
+
+#include "search_utils.h"
+#include "dir_utils.h"
+#include "util/utils.h"
+
+int real_main(const std::vector<std::string>& args);
+
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#include <Windows.h>
 #include <objbase.h>
 #include <shlobj.h>
 #include <shlwapi.h>
-#include <filesystem>
-#include <string>
-#include "search_utils.h"
-#include "Dir_utils.h"
 
 #pragma comment(lib, "Shlwapi.lib")
 
-void print_help(const char* program_name) {
-    std::cout << R"(
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-+  FDZ : Fast File Search                                     +
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+int wmain(int argc, wchar_t* argv[]) {
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
 
-USAGE:
-    )" << program_name << R"( [OPTIONS]
-    )" << program_name << R"( [ROOT_PATH] <search_term>
+    std::vector<std::string> args = convertall_wchar_to_utf8(argc, argv);
 
-OPTIONS:
-    -h, --help          Show this help message
-    -v, --version       Show version information
+    real_main(args);
 
-EXAMPLES:
-    # Search entire system (user directories)
-    )" << program_name << R"( myfile.txt
+    return 0;
 
-    # Search specific path
-    )" << program_name << R"( C:\Projects myfile.txt
+ }
 
-NOTES:
-    skips: node_modules, cache, temp, recycle bin by default
-)";
-}
-
-void print_version() {
-    std::cout << "fdz version 0.0.1\n"
-        << "Built with C++20\n"
-        << "Fast file search tool\n"
-        << "https://github.com/baiching/fdz\n";
-}
-
+#else
 int main(int argc, char* argv[]) {
+    std::vector<std::string> args;
+    args.reserve(argc);
+
+    for (int i = 0; i < argc; ++i) {
+        args.push_back(argv[i]);
+    }
+
+    real_main(args);
+
+    return 0;
+}
+#endif // _WIN32
+
+
+int real_main(const std::vector<std::string> &args) {
+
+    auto search = std::make_unique<Search_Utils>();
+
+
     // Check for help/version FIRST (before any other logic)
-    for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
+    for (int i = 1; i < args.size(); ++i) {
+        std::string arg = args[i];
+
         if (arg == "-h" || arg == "--help") {
             print_help("fdz");
             return 0;
