@@ -1,5 +1,5 @@
 ## This is the document that lists what each public, static and private API are doing.
-
+[it's depricated now, please don't follow it]
 ### search_utils
 #### Here lies all the functions fdz directly relies upon
 ---
@@ -17,7 +17,7 @@ race conditions
 Why this function?
 - Although the process is sequential but it can gather a list of directories in a vector,
   we can simply put them all in a giant vector and start chopping them into small batches.
-  **From our observation batch size of 128 usually provides the best performance**
+  **From our observation batch size of 256 usually provides the best performance**
 
 **concurrent_search** : This is the main entry point which connects every other services
 
