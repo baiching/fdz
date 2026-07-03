@@ -113,7 +113,7 @@ void process_directories(std::unique_ptr<batch_s> batch,std::string &target, Sea
 
         auto new_batch = std::make_unique<batch_s>();
         new_batch->data.reserve(batch_size);
-        new_batch->data = std::vector<std::string>(
+        new_batch->data.assign(
             dir_collection.begin() + i,
             dir_collection.begin() + end
         );
