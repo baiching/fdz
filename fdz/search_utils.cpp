@@ -126,17 +126,6 @@ void Search_Utils::concurrent_search(
     const std::vector<std::string>& roots,
     std::string& target
 ) {
-    
-    if (target.empty())
-    {
-        //std::filesystem
-        if (!fs::exists(roots.front()) || !fs::is_directory(roots.front())) return;
-        for (const auto& entry : fs::directory_iterator(roots.front())) {
-            std::cout << entry.path() << '\n';
-        }
-        return;
-    }
-
     BS::thread_pool pool;
     std::vector<std::string> results;
     Search_Utils srh;
@@ -176,7 +165,7 @@ void Search_Utils::concurrent_search(
             {
                 break;
             }
-            std::this_thread::yield;
+            std::this_thread::yield();
         }
     }
     std::cout << std::endl;
