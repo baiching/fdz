@@ -47,6 +47,7 @@ int main(int argc, char* argv[]) {
 
 
 int real_main(const std::vector<std::string> &args) {
+    std::setlocale(LC_ALL, "");
 
     auto search = std::make_unique<Search_Utils>();
 
@@ -99,8 +100,6 @@ int real_main(const std::vector<std::string> &args) {
         return 1;
     }
 
-    //std::cout << current_batch.data() << std::endl;
-
     std::cout << "Searching for: " << target_file << "\n";
     auto start = std::chrono::steady_clock::now();
 
@@ -108,15 +107,6 @@ int real_main(const std::vector<std::string> &args) {
 
     auto end = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-
-    //if (matches.empty()) {
-    //    std::cout << "No files found.\n";
-    //}
-    //else {
-    //    std::cout << "Found " << matches.size() << " file(s) in " << elapsed << "ms:\n";
-    //    for (const auto& path : matches)
-    //        std::cout << "  " << path << "\n";
-    //}
 
     std::cout << "Found file(s) in " << elapsed << "ms:\n";
 

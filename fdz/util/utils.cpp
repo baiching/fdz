@@ -66,13 +66,10 @@ std::vector<std::string> convertall_wchar_to_utf8(int argc, wchar_t* argv[]) {
 
 void print_help(const char* program_name) {
     std::cout << R"(
-        +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        +  FDZ : Fast File Search                                     +
-        +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+    A tool for searching files in the filesystem
         USAGE:
-            )" << program_name << R"( [OPTIONS]
-            )" << program_name << R"( [ROOT_PATH] <search_term>
+            )" << program_name << R"( <search_term>
+            )" << program_name << R"( [PATH] <search_term>
 
         OPTIONS:
             -h, --help          Show this help message
@@ -86,13 +83,12 @@ void print_help(const char* program_name) {
             )" << program_name << R"( C:\Projects myfile.txt
 
         NOTES:
-            skips: node_modules, cache, temp, recycle bin by default
+            skips: node_modules, cache, temp, recycle bin etc by default
         )";
 }
 
 void print_version() {
-    std::cout << "fdz version 0.0.1\n"
-        << "Built with C++20\n"
+    std::cout << "fdz version 1.0.0\n"
         << "Fast file search tool\n"
         << "https://github.com/baiching/fdz\n";
 }

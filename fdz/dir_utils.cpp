@@ -96,12 +96,8 @@ const std::unordered_set<std::string> Dir_Utils::get_skip_list() const {
 }
 
 void Dir_Utils::wlower(std::wstring& s)  {
-    std::locale loc(""); //system default locale
-    const std::ctype<wchar_t>& f = std::use_facet<std::ctype<wchar_t>>(loc);
-
-	std::transform(s.begin(), s.end(), s.begin(),
-		[&f](wchar_t c) { return f.tolower(c); });
-
+    for (auto& ch : s)
+        ch = std::towlower(ch);
 }
 std::string Dir_Utils::filename_from_path(const std::string& fullpath) {
 	const std::string separators = "/\\";  // forward slash and backslash
