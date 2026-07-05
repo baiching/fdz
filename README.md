@@ -8,11 +8,6 @@ but instead focuses on fast and straightforward file searching.
 **Note** : Currently Windows only. 
 Linux and macOS support are planned, but I don't currently have access to those platforms for development.
 
-## Why not use this?
-
-- If you prefer a GUI, this is probably not for you. However, if you ever build one yourself, fdz could work well as a fast backend search component.
-- If you prefer fine-grained control through flags and explicit search configuration, traditional tools are likely a better fit.
-
 ## Usage
 
 It has three ways to search files
