@@ -56,11 +56,24 @@ gtest_discover_tests(tests)
 
 if(MSVC)
 	add_compile_options(/utf-8)
-    target_compile_options(fdz PRIVATE 
-		/arch:AVX2 
-        /fp:fast
-        /O2
-	)
+    
+	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_compile_options(fdz PRIVATE 
+            /arch:AVX2 
+            /fp:fast
+            /Od          # No optimization
+            /RTC1        # Runtime checks
+            /Zi          # Debug symbols
+        )
+        target_link_options(fdz PRIVATE /DEBUG)
+    else()
+        target_compile_options(fdz PRIVATE 
+            /arch:AVX2 
+            /fp:fast
+            /O2          # Optimized
+        )
+    endif()
+
 	target_compile_options(tests PRIVATE /utf-8)
 
 else()
