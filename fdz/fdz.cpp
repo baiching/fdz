@@ -18,7 +18,30 @@ int real_main(const std::vector<std::string>& args);
 
 #pragma comment(lib, "Shlwapi.lib")
 
+BOOL WINAPI ConsoleCtrlHandler(DWORD dwCtrlType)
+{
+    // React only to Ctrl+C and (optionally) console‑close events.
+    if (dwCtrlType == CTRL_C_EVENT || dwCtrlType == CTRL_CLOSE_EVENT)
+    {
+        // 1. Write the reset sequence directly to the console output.
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        if (hOut != INVALID_HANDLE_VALUE)
+        {
+            DWORD written;
+            WriteConsoleA(hOut, COLOR_RESET,
+                static_cast<DWORD>(std::strlen(COLOR_RESET)),
+                &written, NULL);
+        }
+        // 2. Terminate the process immediately – no further cleanup.
+        ExitProcess(0);
+    }
+    // Let the default handler deal with any other event.
+    return FALSE;
+}
+
+
 int wmain(int argc, wchar_t* argv[]) {
+    SetConsoleCtrlHandler(ConsoleCtrlHandler, TRUE);
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
 
