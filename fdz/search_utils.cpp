@@ -87,7 +87,8 @@ void Search_Utils::find_file(const std::string& path,
 
         if (matched) {
             //result_q.enqueue(path + "\\" + wchar_to_utf8(ffd.cFileName));
-            std::osyncstream(std::cout) << COLOR_DIR << path << "\\" << color << wchar_to_utf8(ffd.cFileName) << COLOR_RESET <<'\n';
+            std::string output = COLOR_DIR + path + "\\" + color + wchar_to_utf8(ffd.cFileName) + COLOR_RESET;
+            std::osyncstream(std::cout) << output <<'\n';
         }
 
     } while (FindNextFileW(hFind, &ffd) != 0);
